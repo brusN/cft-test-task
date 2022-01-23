@@ -1,4 +1,4 @@
-package util.optionsparser;
+package optionsparser;
 
 public enum OptionName {
     OUTPUT_FILENAME("o"),

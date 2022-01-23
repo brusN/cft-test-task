@@ -1,50 +1,50 @@
 package filemergesort;
 
-import filehandler.FileHandler;
+import filemergesort.comparator.IntegerComparator;
+import filemergesort.comparator.StringComparator;
+import filemergesort.filehandler.FileHandler;
 import filemergesort.exception.FileNotSortedException;
 import filemergesort.exception.IllegalFileDataStructException;
-import stringtransformer.S2ITransformer;
-import util.optionsparser.MergeSortParameters;
-import util.optionsparser.SortMode;
+import filemergesort.stringtransformer.S2ITransformer;
+import filemergesort.stringtransformer.STSTransformer;
+import filemergesort.stringtransformer.Transformer;
+import optionsparser.MergeSortParameters;
+import optionsparser.SortMode;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class FileMergeSorter implements FileMergeSorterInterface {
-    private void integerDataMergeSort(MergeSortParameters mergeSortParameters) throws IOException {
+    private final static Logger logger = LoggerFactory.getLogger(FileMergeSorter.class);
 
-        // Comparing function and start value for compare
-        int startValue = mergeSortParameters.getSortMode() == SortMode.ASCEND ? Integer.MAX_VALUE : Integer.MIN_VALUE;
-        Comparator<Integer> comparator = mergeSortParameters.getSortMode() == SortMode.ASCEND ? (o1, o2) -> o2 - o1 : Comparator.comparingInt(o -> o);
+    private <T> void mergeSort(String outputFileName, List<String> inputFileNames, Comparator<T> comparator, Transformer<String, T> transformer) throws FileNotFoundException {
 
         // Creating handler for each input file
-        List<FileHandler<Integer>> fileHandlers = new ArrayList<>();
-        S2ITransformer s2iTransformer = new S2ITransformer();
+        List<FileHandler<T>> fileHandlers = new ArrayList<>();
         try {
-            for (var fileName : mergeSortParameters.getInputFileNames()) {
-                fileHandlers.add(new FileHandler<>(fileName, s2iTransformer, comparator));
+            for (var fileName : inputFileNames) {
+                fileHandlers.add(new FileHandler<>(fileName, transformer, comparator));
             }
-        } catch (IllegalFileDataStructException e) {
-            System.err.println("[Edrror]" + e.getMessage());
+        } catch (IOException e) {
+            logger.error(e.getMessage());
         }
 
         // Removing empty files handlers
         fileHandlers.removeIf(fileHandler -> fileHandler.getCurElem() == null);
 
         // While all input files hasn't been handled
-        PrintStream outputFile = new PrintStream(new FileOutputStream(mergeSortParameters.getOutputFileName()));
+        PrintStream outputFile = new PrintStream(new FileOutputStream(outputFileName));
         while (fileHandlers.size() > 0) {
             // Find min or max element (it depends on the sort mode)
             int fileHandlerNextElemIndex = 0;
-            int searchedElem = startValue;
+            T searchedElem = fileHandlers.get(0).getCurElem();
             for (int handlerIndex = 0; handlerIndex < fileHandlers.size(); ++handlerIndex) {
-                Integer curElem = fileHandlers.get(handlerIndex).getCurElem();
-                if (comparator.compare(searchedElem, curElem) <= 0) {
+                T curElem = fileHandlers.get(handlerIndex).getCurElem();
+                if (comparator.compare(curElem, searchedElem) >= 0) {
                     fileHandlerNextElemIndex = handlerIndex;
                     searchedElem = curElem;
                 }
@@ -55,26 +55,27 @@ public class FileMergeSorter implements FileMergeSorterInterface {
 
             // If all rows in file has handled
             try {
-                if (fileHandlers.get(fileHandlerNextElemIndex).readNextElem() == null) {
+                if (fileHandlers.get(fileHandlerNextElemIndex).nextElem() == null) {
                     fileHandlers.remove(fileHandlerNextElemIndex);
                 }
-            } catch (FileNotSortedException | IllegalFileDataStructException e) {
-                System.err.println("[Error] " + e.getMessage());
+            } catch (FileNotSortedException | IllegalFileDataStructException | IOException e) {
+                logger.warn(e.getMessage());
                 fileHandlers.remove(fileHandlerNextElemIndex);
             }
         }
-
-    }
-
-    private void stringDataMergeSort(MergeSortParameters mergeSortParameters) throws FileNotFoundException {
-
     }
 
     @Override
-    public void sort(MergeSortParameters mergeSortParameters) throws FileNotFoundException, IOException {
+    public void sort(MergeSortParameters mergeSortParameters) throws IOException {
         switch (mergeSortParameters.getDataType()) {
-            case INTEGER -> integerDataMergeSort(mergeSortParameters);
-            case STRING -> stringDataMergeSort(mergeSortParameters);
+            case INTEGER -> {
+                Comparator<Integer> comparator = mergeSortParameters.getSortMode() == SortMode.ASCEND ? new IntegerComparator() : new IntegerComparator().reversed();
+                mergeSort(mergeSortParameters.getOutputFileName(), mergeSortParameters.getInputFileNames(), comparator, new S2ITransformer());
+            }
+            case STRING -> {
+                Comparator<String> comparator = mergeSortParameters.getSortMode() == SortMode.ASCEND ? new StringComparator() : new StringComparator().reversed();
+                mergeSort(mergeSortParameters.getOutputFileName(), mergeSortParameters.getInputFileNames(), comparator, new STSTransformer());
+            }
             default -> throw new IllegalArgumentException("Unknown file data type");
         }
     }

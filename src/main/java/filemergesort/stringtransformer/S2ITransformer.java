@@ -1,4 +1,4 @@
-package stringtransformer;
+package filemergesort.stringtransformer;
 
 public class S2ITransformer implements Transformer <String, Integer> {
     @Override

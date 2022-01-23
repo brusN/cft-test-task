@@ -1,4 +1,4 @@
-package stringtransformer;
+package filemergesort.stringtransformer;
 
 public class STSTransformer implements Transformer<String, String> {
     @Override

@@ -1,4 +1,4 @@
-package util.optionsparser;
+package optionsparser;
 
 import org.apache.commons.cli.ParseException;
 
