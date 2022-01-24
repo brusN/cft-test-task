@@ -55,10 +55,16 @@ public class FileMergeSorter implements FileMergeSorterInterface {
 
             // If all rows in file has handled
             try {
-                if (fileHandlers.get(fileHandlerNextElemIndex).nextElem() == null) {
+                var fileHandler = fileHandlers.get(fileHandlerNextElemIndex);
+                try {
+                    fileHandler.nextElem();
+                } catch (FileNotSortedException | IllegalFileDataStructException e) {
+                    logger.error(e.getMessage());
+                 }
+                if (fileHandler.isReachedEOF()) {
                     fileHandlers.remove(fileHandlerNextElemIndex);
                 }
-            } catch (FileNotSortedException | IllegalFileDataStructException | IOException e) {
+            } catch (IOException e) {
                 logger.warn(e.getMessage());
                 fileHandlers.remove(fileHandlerNextElemIndex);
             }

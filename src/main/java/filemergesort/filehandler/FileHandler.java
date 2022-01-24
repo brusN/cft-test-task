@@ -1,5 +1,6 @@
 package filemergesort.filehandler;
 
+import filemergesort.exception.DataTransformErrorException;
 import filemergesort.exception.FileNotSortedException;
 import filemergesort.exception.IllegalFileDataStructException;
 import filemergesort.stringtransformer.Transformer;
@@ -30,6 +31,14 @@ public class FileHandler <T> {
 
     public T getCurElem() {
         return curElem;
+    }
+
+    public boolean isReachedEOF() {
+        return reachedEOF;
+    }
+
+    public long getCurLineNumber() {
+        return curLineNumber;
     }
 
     public FileHandler(String fileName, Transformer<String, T> dataTransformer, Comparator<T> comparator) throws IOException {
@@ -75,7 +84,15 @@ public class FileHandler <T> {
             return null;
         }
 
-        return dataTransformer.transform(nextLine);
+        T value = null;
+        try {
+            value = dataTransformer.transform(nextLine);
+        } catch (DataTransformErrorException e) {
+            logger.error(e.getMessage() + " in file " + fileName + " on line " + curLineNumber);
+            return null;
+        }
+
+        return value;
     }
 
     public T nextElem() throws IOException, FileNotSortedException, IllegalFileDataStructException {
