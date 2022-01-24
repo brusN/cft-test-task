@@ -3,28 +3,40 @@
 [Задание](https://drive.google.com/file/d/10qhGjn7biURykP8hIcT6NJHoGX-WOHUh/view)
 
 ## Инструкция по запуску
-При разработке использовались следующие версия Java, система сборки и сторонние библиотеки
-* Oracle OpenJDK 17.0.2
-* Maven 3.8.1
-* Сторонние библиотеки:
-  * SLF4J (логгер)
-  * Apache Commons CLI (парсер входных аргументов)
+* Oracle OpenJDK 17.0.2 - версия Java
+* Maven 3.8.1 - система сборки
 
-```
-  <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-api</artifactId>
-      <version>1.7.33</version>
-  </dependency>
-  <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>1.7.33</version>
-  </dependency>
-  <dependency>
-      <groupId>commons-cli</groupId>
-      <artifactId>commons-cli</artifactId>
-      <version>1.5.0</version>
-  </dependency>
-```
+Все зависимости указаны в файле [pom.xml](https://github.com/brusN/cft-test-task/blob/main/pom.xml)
 
+
+### Сборка проекта в JAR-файл
+После того, как репозиторий проекта был скачан и распакован, необходимо открыть терминал в директории проекта и прописать следующее
+```
+mvn clean compile assembly:single
+```
+В директории проекта появится новая директория ./target, в ней будет находится .jar файл.
+Запуск JAR-файла производится следующим образом
+```
+java -jar <jarFileName.jar> <args>
+```
+* \<jarFileName.jar\> - имя файла с расширением .jar
+* \<args\> - аргументы программы
+ 
+### Параметры запуска программы
++ ```-i``` (```-s```) - сортировка производится для целых чисел (строк)
++ ```-a``` (```-d```)- сортировка в порядке возрастания (убывания)
++ ```-o``` - задает имя выходного файла
++ ```-h``` или ```--help``` - выводит информацию о параметрах запуска программы
++ Остальные параметры - имена сортируемых файлов  
+---
++ Параметр типа данных сортировки обязателен
++ По умолчанию, режим сортировки <b>в порядке возрастания</b>
++ По умолчанию, имя выходного файла <b>output.txt</b>
+### Примеры запуска
+```
+java -jar testtask.jar -i -d -o out.txt in1.txt in2.txt in3.txt (верно)
+java -jar testtask.jar -s -a in1.txt in2.txt (верно)
+java -jar testtask.jar -s -i in1.txt in2.txt (ошибка, неопределенность типа данных сортировки)
+java -jar testtask.jar -a in1.txt in2.txt (ошибка, не указан тип данных сортировки)
+java -jar testtask.jar -i -a -d in1.txt in2.txt (ошибка, неопределенность порядка сортировки)
+```
