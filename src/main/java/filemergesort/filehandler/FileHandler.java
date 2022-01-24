@@ -95,7 +95,7 @@ public class FileHandler <T> {
         return value;
     }
 
-    public T nextElem() throws IOException, FileNotSortedException, IllegalFileDataStructException {
+    private T findNextNotNullElem() throws IOException {
         T nextElem = getNextElemFromFile();
         while (nextElem == null) {
             if (reachedEOF) {
@@ -103,10 +103,22 @@ public class FileHandler <T> {
             }
             nextElem = getNextElemFromFile();
         }
+        return nextElem;
+    }
+
+    public T nextElem() throws IOException {
+        T nextElem = findNextNotNullElem();
+        if (nextElem == null) {
+            return null;
+        }
 
         // Comparator defines order of elements. Comparator may has ASCENDED and DESCENDED compare mode
-        if (comparator.compare(curElem, nextElem) < 0) {
-            throw new FileNotSortedException("File " + fileName + " not sorted on line " + curLineNumber + ". Data element has skipped...");
+        while (comparator.compare(curElem, nextElem) < 0 && nextElem != null) {
+            logger.error("File " + fileName + " not sorted on line " + curLineNumber + ". Data element has skipped...");
+            nextElem = findNextNotNullElem();
+        }
+        if (nextElem == null) {
+            return null;
         }
 
         prevElem = curElem;
