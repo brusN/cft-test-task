@@ -3,6 +3,12 @@
 [Задание](https://drive.google.com/file/d/10qhGjn7biURykP8hIcT6NJHoGX-WOHUh/view)
 
 ## Инструкция по запуску
+Для сборки и запуска потребуется Java 17 и Maven 3.8.\*. Убедитесь, что они у вас установлены (+ прописаны в PATH) и выбрана нужная версия
+```
+mvn --version
+java --version
+```
+Конкретно в процессе разработки следующие версии Java и Maven
 * Oracle OpenJDK 17.0.2 - версия Java
 * Maven 3.8.1 - система сборки
 
@@ -20,7 +26,7 @@ mvn clean compile assembly:single
 java -jar <jarFileName.jar> <args>
 ```
 * \<jarFileName.jar\> - имя файла с расширением .jar
-* \<args\> - аргументы программы
+* \<args\> - параметры запуска программы
  
 ### Параметры запуска программы
 + ```-i``` (```-s```) - сортировка производится для целых чисел (строк)
